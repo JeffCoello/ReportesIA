@@ -1,0 +1,2143 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Directorio corporativo de Recursos Humanos alimentado dinámicamente desde Google Sheets." />
+  <meta name="theme-color" content="#0c0d10" />
+  <title>Portal de RRHH</title>
+
+  <style>
+    /* =========================================================
+       1. VARIABLES DE DISEÑO
+       Personalice aquí los colores y dimensiones principales.
+       ========================================================= */
+    :root {
+      --brand-gold: #f4cd32;
+      --brand-gold-soft: #fff4bd;
+      --brand-black: #0c0d10;
+      --brand-black-2: #181a20;
+      --surface: #ffffff;
+      --surface-alt: #f6f7f9;
+      --surface-dark: #22252c;
+      --text: #20232a;
+      --text-soft: #667085;
+      --border: #e4e7ec;
+      --success: #16835f;
+      --danger: #c63d4d;
+      --shadow-sm: 0 8px 24px rgba(16, 24, 40, 0.08);
+      --shadow-lg: 0 24px 70px rgba(16, 24, 40, 0.18);
+      --radius-sm: 12px;
+      --radius-md: 18px;
+      --radius-lg: 28px;
+      --sidebar-width: 350px;
+      --transition: 220ms ease;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--text);
+      background:
+        radial-gradient(circle at 8% 8%, rgba(244, 205, 50, 0.12), transparent 28rem),
+        linear-gradient(180deg, #f8f9fb 0%, #eef1f5 100%);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    button,
+    input {
+      font: inherit;
+    }
+
+    button,
+    a {
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    a {
+      color: inherit;
+    }
+
+    button:focus-visible,
+    input:focus-visible,
+    summary:focus-visible,
+    a:focus-visible {
+      outline: 3px solid rgba(244, 205, 50, 0.52);
+      outline-offset: 3px;
+    }
+
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    /* =========================================================
+       2. ENCABEZADO
+       ========================================================= */
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 40;
+      color: #fff;
+      background:
+        linear-gradient(100deg, rgba(255,255,255,0.04), transparent 28%),
+        var(--brand-black);
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.2);
+    }
+
+    .topbar__content {
+      width: min(1520px, calc(100% - 32px));
+      min-height: 104px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      min-width: 0;
+    }
+
+    .brand__mark {
+      width: 54px;
+      height: 54px;
+      display: grid;
+      place-items: center;
+      flex: 0 0 auto;
+      color: var(--brand-black);
+      background: linear-gradient(145deg, #ffe876, var(--brand-gold));
+      border-radius: 18px;
+      box-shadow: 0 10px 28px rgba(244, 205, 50, 0.24);
+    }
+
+    .brand__mark svg {
+      width: 29px;
+      height: 29px;
+    }
+
+    .brand__eyebrow {
+      display: block;
+      margin-bottom: 3px;
+      color: rgba(255,255,255,0.58);
+      font-size: 0.72rem;
+      font-weight: 800;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+    }
+
+    .brand h1 {
+      margin: 0;
+      color: var(--brand-gold);
+      font-size: clamp(1.55rem, 3vw, 2.45rem);
+      font-weight: 650;
+      letter-spacing: -0.035em;
+      line-height: 1.05;
+      white-space: nowrap;
+    }
+
+    .header-stats {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .header-stat {
+      min-width: 122px;
+      padding: 10px 14px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: rgba(255,255,255,0.07);
+      border: 1px solid rgba(255,255,255,0.10);
+      border-radius: 14px;
+      backdrop-filter: blur(12px);
+    }
+
+    .header-stat__icon {
+      width: 30px;
+      height: 30px;
+      display: grid;
+      place-items: center;
+      color: var(--brand-gold);
+      background: rgba(244,205,50,0.12);
+      border-radius: 10px;
+    }
+
+    .header-stat__icon svg {
+      width: 16px;
+      height: 16px;
+    }
+
+    .header-stat strong {
+      display: block;
+      font-size: 1.03rem;
+      line-height: 1;
+    }
+
+    .header-stat span {
+      display: block;
+      margin-top: 3px;
+      color: rgba(255,255,255,0.58);
+      font-size: 0.7rem;
+      line-height: 1;
+    }
+
+    /* =========================================================
+       3. ESTRUCTURA PRINCIPAL
+       ========================================================= */
+    .app-shell {
+      width: min(1520px, calc(100% - 32px));
+      margin: 28px auto 40px;
+      display: grid;
+      grid-template-columns: var(--sidebar-width) minmax(0, 1fr);
+      gap: 24px;
+      align-items: start;
+    }
+
+    .panel {
+      background: rgba(255,255,255,0.92);
+      border: 1px solid rgba(255,255,255,0.86);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-sm);
+      backdrop-filter: blur(18px);
+    }
+
+    /* =========================================================
+       4. DIRECTORIO LATERAL / ÁRBOL DE GERENCIAS
+       ========================================================= */
+    .directory {
+      position: sticky;
+      top: 132px;
+      max-height: calc(100vh - 156px);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .directory__header {
+      padding: 22px 22px 16px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .section-kicker {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin: 0 0 7px;
+      color: #8b7010;
+      font-size: 0.72rem;
+      font-weight: 850;
+      letter-spacing: 0.13em;
+      text-transform: uppercase;
+    }
+
+    .section-kicker::before {
+      content: "";
+      width: 22px;
+      height: 3px;
+      background: var(--brand-gold);
+      border-radius: 99px;
+    }
+
+    .directory h2,
+    .search-card h2 {
+      margin: 0;
+      font-size: 1.22rem;
+      letter-spacing: -0.025em;
+    }
+
+    .directory__meta {
+      margin: 7px 0 0;
+      color: var(--text-soft);
+      font-size: 0.84rem;
+    }
+
+    .tree {
+      padding: 12px 10px 18px;
+      overflow: auto;
+      scrollbar-width: thin;
+      scrollbar-color: #c6cad1 transparent;
+    }
+
+    .tree::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    .tree::-webkit-scrollbar-thumb {
+      background: #c6cad1;
+      border: 2px solid transparent;
+      border-radius: 99px;
+      background-clip: padding-box;
+    }
+
+    .tree-group {
+      margin: 3px 0;
+      border-radius: 13px;
+      overflow: hidden;
+    }
+
+    .tree-group[open] {
+      background: var(--surface-alt);
+    }
+
+    .tree-group summary {
+      position: relative;
+      min-height: 43px;
+      padding: 11px 42px 11px 40px;
+      display: flex;
+      align-items: center;
+      cursor: pointer;
+      list-style: none;
+      color: #343840;
+      font-size: 0.83rem;
+      font-weight: 800;
+      letter-spacing: 0.01em;
+      text-transform: uppercase;
+      transition: background var(--transition), color var(--transition);
+    }
+
+    .tree-group summary::-webkit-details-marker {
+      display: none;
+    }
+
+    .tree-group summary:hover {
+      background: rgba(244,205,50,0.13);
+    }
+
+    .tree-group summary::before {
+      content: "+";
+      position: absolute;
+      left: 13px;
+      width: 18px;
+      height: 18px;
+      display: grid;
+      place-items: center;
+      color: #747a84;
+      border: 1.5px solid #aeb3bb;
+      border-radius: 5px;
+      font-size: 0.82rem;
+      line-height: 1;
+    }
+
+    .tree-group[open] summary::before {
+      content: "−";
+      color: var(--brand-black);
+      background: var(--brand-gold);
+      border-color: var(--brand-gold);
+    }
+
+    .tree-group__count {
+      position: absolute;
+      right: 12px;
+      min-width: 24px;
+      height: 24px;
+      padding: 0 7px;
+      display: grid;
+      place-items: center;
+      color: #5e626a;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      font-size: 0.68rem;
+      font-weight: 800;
+    }
+
+    .employee-list {
+      padding: 0 6px 8px 26px;
+    }
+
+    .employee-button {
+      width: 100%;
+      min-height: 39px;
+      padding: 8px 10px;
+      display: grid;
+      grid-template-columns: 30px minmax(0, 1fr);
+      align-items: center;
+      gap: 10px;
+      color: #555b66;
+      text-align: left;
+      background: transparent;
+      border: 0;
+      border-radius: 10px;
+      cursor: pointer;
+      transition:
+        transform var(--transition),
+        color var(--transition),
+        background var(--transition),
+        box-shadow var(--transition);
+    }
+
+    .employee-button:hover {
+      color: var(--brand-black);
+      background: #fff;
+      transform: translateX(3px);
+    }
+
+    .employee-button.is-selected {
+      color: var(--brand-black);
+      background: linear-gradient(90deg, var(--brand-gold-soft), #fff);
+      box-shadow: 0 7px 20px rgba(30, 34, 42, 0.08);
+    }
+
+    .employee-button__avatar {
+      width: 30px;
+      height: 30px;
+      display: grid;
+      place-items: center;
+      color: #fff;
+      background: linear-gradient(145deg, #383c45, #111318);
+      border-radius: 10px;
+      font-size: 0.66rem;
+      font-weight: 850;
+      letter-spacing: 0.02em;
+    }
+
+    .employee-button.is-selected .employee-button__avatar {
+      color: var(--brand-black);
+      background: var(--brand-gold);
+    }
+
+    .employee-button__text {
+      min-width: 0;
+    }
+
+    .employee-button__name {
+      display: block;
+      overflow: hidden;
+      font-size: 0.82rem;
+      font-weight: 650;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .employee-button__role {
+      display: block;
+      margin-top: 2px;
+      overflow: hidden;
+      color: #8a9099;
+      font-size: 0.68rem;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .tree-empty {
+      padding: 28px 18px;
+      color: var(--text-soft);
+      text-align: center;
+      font-size: 0.84rem;
+    }
+
+    /* =========================================================
+       5. CONTENIDO PRINCIPAL Y BUSCADOR
+       ========================================================= */
+    .content {
+      min-width: 0;
+      display: grid;
+      gap: 22px;
+    }
+
+    .search-card {
+      padding: 22px;
+    }
+
+    .search-card__top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 18px;
+      margin-bottom: 16px;
+    }
+
+    .status-line {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 9px;
+      color: var(--text-soft);
+      font-size: 0.77rem;
+      text-align: right;
+    }
+
+    .status-dot {
+      width: 9px;
+      height: 9px;
+      flex: 0 0 auto;
+      background: #aeb3bb;
+      border-radius: 50%;
+      box-shadow: 0 0 0 4px rgba(174,179,187,0.15);
+    }
+
+    .status-dot.is-online {
+      background: var(--success);
+      box-shadow: 0 0 0 4px rgba(22,131,95,0.12);
+    }
+
+    .status-dot.is-error {
+      background: var(--danger);
+      box-shadow: 0 0 0 4px rgba(198,61,77,0.12);
+    }
+
+    .search-box {
+      position: relative;
+      display: grid;
+      grid-template-columns: 44px minmax(0, 1fr) auto;
+      align-items: center;
+      min-height: 58px;
+      background: var(--surface-alt);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      transition:
+        border var(--transition),
+        background var(--transition),
+        box-shadow var(--transition);
+    }
+
+    .search-box:focus-within {
+      background: #fff;
+      border-color: rgba(244,205,50,0.9);
+      box-shadow: 0 0 0 5px rgba(244,205,50,0.14);
+    }
+
+    .search-box__icon {
+      display: grid;
+      place-items: center;
+      color: #7a808a;
+    }
+
+    .search-box__icon svg {
+      width: 19px;
+      height: 19px;
+    }
+
+    #searchInput {
+      width: 100%;
+      height: 100%;
+      padding: 0 8px 0 0;
+      color: var(--text);
+      background: transparent;
+      border: 0;
+      outline: 0;
+    }
+
+    #searchInput::placeholder {
+      color: #9298a2;
+    }
+
+    .search-actions {
+      padding-right: 8px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .icon-button {
+      width: 39px;
+      height: 39px;
+      display: grid;
+      place-items: center;
+      color: #616771;
+      background: transparent;
+      border: 0;
+      border-radius: 11px;
+      cursor: pointer;
+      transition: color var(--transition), background var(--transition), transform var(--transition);
+    }
+
+    .icon-button:hover {
+      color: var(--brand-black);
+      background: #fff;
+      transform: translateY(-1px);
+    }
+
+    .icon-button svg {
+      width: 18px;
+      height: 18px;
+    }
+
+    .icon-button.is-spinning svg {
+      animation: spin 700ms linear infinite;
+    }
+
+    .search-results-meta {
+      margin: 11px 3px 0;
+      color: var(--text-soft);
+      font-size: 0.78rem;
+    }
+
+    /* =========================================================
+       6. PERFIL DEL COLABORADOR
+       ========================================================= */
+    .profile {
+      min-height: 480px;
+      overflow: hidden;
+      display: grid;
+      grid-template-columns: minmax(280px, 38%) minmax(0, 1fr);
+    }
+
+    .profile__visual {
+      position: relative;
+      min-height: 480px;
+      overflow: hidden;
+      background:
+        radial-gradient(circle at 20% 10%, rgba(244,205,50,0.35), transparent 16rem),
+        linear-gradient(145deg, #24272e, #101115);
+    }
+
+    .profile__visual::after {
+      content: "";
+      position: absolute;
+      inset: auto 0 0;
+      height: 45%;
+      pointer-events: none;
+      background: linear-gradient(transparent, rgba(5,6,8,0.78));
+    }
+
+    .profile__photo,
+    .profile__fallback {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+    }
+
+    .profile__photo {
+      display: none;
+      object-fit: cover;
+      object-position: center;
+      filter: saturate(0.96) contrast(1.02);
+      animation: fadeIn 380ms ease;
+    }
+
+    .profile__fallback {
+      display: grid;
+      place-items: center;
+      color: rgba(255,255,255,0.98);
+      font-size: clamp(4rem, 10vw, 7.8rem);
+      font-weight: 850;
+      letter-spacing: -0.07em;
+      background:
+        repeating-linear-gradient(135deg, transparent 0 18px, rgba(255,255,255,0.018) 18px 36px);
+    }
+
+    .profile__badge {
+      position: absolute;
+      z-index: 2;
+      top: 22px;
+      left: 22px;
+      padding: 8px 12px;
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      color: var(--brand-black);
+      background: rgba(244,205,50,0.96);
+      border-radius: 999px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.14);
+      font-size: 0.72rem;
+      font-weight: 850;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      backdrop-filter: blur(8px);
+    }
+
+    .profile__badge::before {
+      content: "";
+      width: 7px;
+      height: 7px;
+      background: var(--brand-black);
+      border-radius: 50%;
+    }
+
+    .profile__visual-caption {
+      position: absolute;
+      z-index: 2;
+      right: 22px;
+      bottom: 22px;
+      left: 22px;
+      color: #fff;
+    }
+
+    .profile__visual-caption strong {
+      display: block;
+      font-size: 1.18rem;
+      line-height: 1.15;
+    }
+
+    .profile__visual-caption span {
+      display: block;
+      margin-top: 5px;
+      color: rgba(255,255,255,0.64);
+      font-size: 0.78rem;
+    }
+
+    .profile__details {
+      position: relative;
+      padding: clamp(28px, 5vw, 58px);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      background:
+        linear-gradient(135deg, rgba(244,205,50,0.08), transparent 42%),
+        #fff;
+    }
+
+    .profile__details::before {
+      content: "";
+      position: absolute;
+      top: 32px;
+      right: 32px;
+      width: 72px;
+      height: 72px;
+      opacity: 0.38;
+      background:
+        radial-gradient(circle, var(--brand-gold) 2px, transparent 2.5px);
+      background-size: 12px 12px;
+    }
+
+    .profile__title {
+      position: relative;
+      z-index: 1;
+      margin: 0 0 7px;
+      max-width: 720px;
+      font-size: clamp(2rem, 4.5vw, 4.1rem);
+      font-weight: 680;
+      letter-spacing: -0.055em;
+      line-height: 1.02;
+      overflow-wrap: anywhere;
+    }
+
+    .profile__subtitle {
+      position: relative;
+      z-index: 1;
+      margin: 0 0 34px;
+      color: var(--text-soft);
+      font-size: 0.9rem;
+    }
+
+    .profile-grid {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .data-card {
+      min-width: 0;
+      min-height: 108px;
+      padding: 18px;
+      background: var(--surface-alt);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      transition: transform var(--transition), box-shadow var(--transition), border var(--transition);
+    }
+
+    .data-card:hover {
+      border-color: rgba(244,205,50,0.6);
+      box-shadow: 0 12px 28px rgba(16,24,40,0.07);
+      transform: translateY(-2px);
+    }
+
+    .data-card__label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 10px;
+      color: #7b818b;
+      font-size: 0.7rem;
+      font-weight: 850;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    .data-card__label svg {
+      width: 16px;
+      height: 16px;
+      color: #9b7d0d;
+    }
+
+    .data-card__value {
+      display: block;
+      overflow-wrap: anywhere;
+      color: #272b32;
+      font-size: clamp(0.92rem, 1.7vw, 1.08rem);
+      font-weight: 700;
+      line-height: 1.35;
+      text-decoration: none;
+    }
+
+    a.data-card__value:hover {
+      text-decoration: underline;
+      text-decoration-color: var(--brand-gold);
+      text-decoration-thickness: 2px;
+      text-underline-offset: 4px;
+    }
+
+    .profile-actions {
+      position: relative;
+      z-index: 1;
+      margin-top: 26px;
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .button {
+      min-height: 44px;
+      padding: 0 16px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      color: var(--brand-black);
+      background: var(--brand-gold);
+      border: 1px solid var(--brand-gold);
+      border-radius: 12px;
+      cursor: pointer;
+      font-size: 0.82rem;
+      font-weight: 800;
+      text-decoration: none;
+      transition: transform var(--transition), box-shadow var(--transition), background var(--transition);
+    }
+
+    .button:hover {
+      background: #ffe162;
+      box-shadow: 0 10px 24px rgba(244,205,50,0.24);
+      transform: translateY(-2px);
+    }
+
+    .button--secondary {
+      color: #454a53;
+      background: #fff;
+      border-color: var(--border);
+    }
+
+    .button--secondary:hover {
+      background: var(--surface-alt);
+      box-shadow: 0 10px 24px rgba(16,24,40,0.08);
+    }
+
+    .button svg {
+      width: 17px;
+      height: 17px;
+    }
+
+    /* =========================================================
+       7. ESTADOS DE CARGA, ERROR Y VACÍO
+       ========================================================= */
+    .state-card {
+      min-height: 480px;
+      padding: 42px;
+      display: grid;
+      place-items: center;
+      text-align: center;
+    }
+
+    .state-card__content {
+      max-width: 540px;
+    }
+
+    .state-icon {
+      width: 70px;
+      height: 70px;
+      margin: 0 auto 20px;
+      display: grid;
+      place-items: center;
+      color: var(--brand-black);
+      background: var(--brand-gold-soft);
+      border-radius: 24px;
+    }
+
+    .state-icon svg {
+      width: 32px;
+      height: 32px;
+    }
+
+    .state-card h3 {
+      margin: 0 0 9px;
+      font-size: 1.35rem;
+    }
+
+    .state-card p {
+      margin: 0;
+      color: var(--text-soft);
+      font-size: 0.9rem;
+      line-height: 1.65;
+    }
+
+    .state-card .button {
+      margin-top: 22px;
+    }
+
+    .skeleton {
+      overflow: hidden;
+      background: linear-gradient(100deg, #eceff3 20%, #f8f9fb 40%, #eceff3 60%);
+      background-size: 220% 100%;
+      border-radius: 12px;
+      animation: shimmer 1.35s infinite linear;
+    }
+
+    .loading-layout {
+      min-height: 480px;
+      padding: 30px;
+      display: grid;
+      grid-template-columns: 38% 1fr;
+      gap: 30px;
+    }
+
+    .loading-photo {
+      min-height: 420px;
+      border-radius: 22px;
+    }
+
+    .loading-info {
+      padding-top: 60px;
+    }
+
+    .loading-line {
+      height: 22px;
+      margin-bottom: 16px;
+    }
+
+    .loading-line--lg {
+      width: 80%;
+      height: 58px;
+    }
+
+    .loading-line--sm {
+      width: 52%;
+    }
+
+    .loading-cards {
+      margin-top: 34px;
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 14px;
+    }
+
+    .loading-card {
+      height: 108px;
+    }
+
+    .toast {
+      position: fixed;
+      z-index: 100;
+      right: 22px;
+      bottom: 22px;
+      max-width: min(360px, calc(100% - 44px));
+      padding: 14px 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: #fff;
+      background: #1b1e24;
+      border: 1px solid rgba(255,255,255,0.09);
+      border-radius: 14px;
+      box-shadow: var(--shadow-lg);
+      font-size: 0.82rem;
+      transform: translateY(130%);
+      opacity: 0;
+      transition: transform 260ms ease, opacity 260ms ease;
+    }
+
+    .toast.is-visible {
+      transform: translateY(0);
+      opacity: 1;
+    }
+
+    .toast svg {
+      width: 18px;
+      height: 18px;
+      color: var(--brand-gold);
+      flex: 0 0 auto;
+    }
+
+    /* =========================================================
+       8. ADAPTACIÓN RESPONSIVA
+       ========================================================= */
+    @media (max-width: 1080px) {
+      :root {
+        --sidebar-width: 310px;
+      }
+
+      .profile {
+        grid-template-columns: minmax(240px, 36%) minmax(0, 1fr);
+      }
+
+      .profile__details {
+        padding: 34px;
+      }
+    }
+
+    @media (max-width: 900px) {
+      .topbar__content {
+        min-height: 92px;
+      }
+
+      .header-stats {
+        display: none;
+      }
+
+      .app-shell {
+        grid-template-columns: 1fr;
+      }
+
+      .content {
+        order: 1;
+      }
+
+      .directory {
+        position: static;
+        order: 2;
+        max-height: none;
+      }
+
+      .tree {
+        max-height: 520px;
+      }
+
+      .profile {
+        grid-template-columns: 1fr;
+      }
+
+      .profile__visual {
+        min-height: 440px;
+      }
+    }
+
+    @media (max-width: 620px) {
+      .topbar__content,
+      .app-shell {
+        width: min(100% - 20px, 1520px);
+      }
+
+      .topbar__content {
+        min-height: 80px;
+      }
+
+      .brand {
+        gap: 11px;
+      }
+
+      .brand__mark {
+        width: 45px;
+        height: 45px;
+        border-radius: 14px;
+      }
+
+      .brand__eyebrow {
+        display: none;
+      }
+
+      .brand h1 {
+        font-size: 1.45rem;
+      }
+
+      .app-shell {
+        margin-top: 14px;
+        gap: 14px;
+      }
+
+      .panel {
+        border-radius: 20px;
+      }
+
+      .search-card,
+      .directory__header {
+        padding: 18px;
+      }
+
+      .search-card__top {
+        display: block;
+      }
+
+      .status-line {
+        margin-top: 9px;
+        justify-content: flex-start;
+        text-align: left;
+      }
+
+      .search-box {
+        grid-template-columns: 40px minmax(0, 1fr) auto;
+      }
+
+      .profile__visual {
+        min-height: 380px;
+      }
+
+      .profile__details {
+        padding: 28px 20px;
+      }
+
+      .profile__title {
+        font-size: clamp(2rem, 11vw, 3.1rem);
+      }
+
+      .profile-grid,
+      .loading-cards {
+        grid-template-columns: 1fr;
+      }
+
+      .profile-actions {
+        display: grid;
+      }
+
+      .button {
+        width: 100%;
+      }
+
+      .loading-layout {
+        padding: 18px;
+        grid-template-columns: 1fr;
+      }
+
+      .loading-photo {
+        min-height: 330px;
+      }
+
+      .loading-info {
+        padding-top: 0;
+      }
+
+      .state-card {
+        min-height: 400px;
+        padding: 30px 22px;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        scroll-behavior: auto !important;
+        animation-duration: 0.001ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.001ms !important;
+      }
+    }
+
+    @keyframes shimmer {
+      to { background-position-x: -220%; }
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: scale(1.015); }
+      to { opacity: 1; transform: scale(1); }
+    }
+  </style>
+</head>
+
+<body>
+  <header class="topbar">
+    <div class="topbar__content">
+      <div class="brand">
+        <div class="brand__mark" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+            <circle cx="9" cy="7" r="4"/>
+            <path d="M22 21v-2a4 4 0 0 0-3-3.87"/>
+            <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+          </svg>
+        </div>
+        <div>
+          <span class="brand__eyebrow">Directorio corporativo</span>
+          <h1>Portal de RRHH</h1>
+        </div>
+      </div>
+
+      <div class="header-stats" aria-label="Resumen del directorio">
+        <div class="header-stat">
+          <div class="header-stat__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+              <circle cx="9" cy="7" r="4"/>
+              <path d="M19 8v6M22 11h-6"/>
+            </svg>
+          </div>
+          <div>
+            <strong id="employeeCount">—</strong>
+            <span>Colaboradores</span>
+          </div>
+        </div>
+
+        <div class="header-stat">
+          <div class="header-stat__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="3" width="7" height="7"/>
+              <rect x="14" y="3" width="7" height="7"/>
+              <rect x="3" y="14" width="7" height="7"/>
+              <rect x="14" y="14" width="7" height="7"/>
+            </svg>
+          </div>
+          <div>
+            <strong id="managementCount">—</strong>
+            <span>Gerencias</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <div class="app-shell">
+    <aside class="directory panel" aria-labelledby="directoryTitle">
+      <div class="directory__header">
+        <p class="section-kicker">Organización</p>
+        <h2 id="directoryTitle">Gerencias y personal</h2>
+        <p class="directory__meta" id="directoryMeta">Cargando estructura organizacional…</p>
+      </div>
+      <nav class="tree" id="directoryTree" aria-label="Directorio por gerencia"></nav>
+    </aside>
+
+    <main class="content">
+      <section class="search-card panel" aria-labelledby="searchTitle">
+        <div class="search-card__top">
+          <div>
+            <p class="section-kicker">Búsqueda rápida</p>
+            <h2 id="searchTitle">Encuentra a un colaborador</h2>
+          </div>
+          <div class="status-line" aria-live="polite">
+            <span class="status-dot" id="statusDot"></span>
+            <span id="dataStatus">Conectando con Google Sheets…</span>
+          </div>
+        </div>
+
+        <label class="sr-only" for="searchInput">Buscar por nombre, gerencia, puesto o correo</label>
+        <div class="search-box">
+          <span class="search-box__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+              <circle cx="11" cy="11" r="7"/>
+              <path d="m20 20-3.2-3.2"/>
+            </svg>
+          </span>
+
+          <input
+            id="searchInput"
+            type="search"
+            autocomplete="off"
+            spellcheck="false"
+            placeholder="Buscar por nombre, gerencia, puesto o correo…"
+            aria-describedby="resultsMeta"
+          />
+
+          <div class="search-actions">
+            <button class="icon-button" id="clearButton" type="button" title="Limpiar búsqueda" aria-label="Limpiar búsqueda" hidden>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                <path d="M18 6 6 18M6 6l12 12"/>
+              </svg>
+            </button>
+
+            <button class="icon-button" id="refreshButton" type="button" title="Actualizar datos" aria-label="Actualizar datos">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                <path d="M20 11a8.1 8.1 0 0 0-15.5-2M4 4v5h5"/>
+                <path d="M4 13a8.1 8.1 0 0 0 15.5 2M20 20v-5h-5"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <p class="search-results-meta" id="resultsMeta" aria-live="polite">
+          Los resultados se mostrarán al completar la carga.
+        </p>
+      </section>
+
+      <section id="mainState" class="panel" aria-live="polite">
+        <div class="loading-layout" aria-label="Cargando información">
+          <div class="loading-photo skeleton"></div>
+          <div class="loading-info">
+            <div class="loading-line loading-line--lg skeleton"></div>
+            <div class="loading-line loading-line--sm skeleton"></div>
+            <div class="loading-cards">
+              <div class="loading-card skeleton"></div>
+              <div class="loading-card skeleton"></div>
+              <div class="loading-card skeleton"></div>
+              <div class="loading-card skeleton"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true">
+      <path d="M20 6 9 17l-5-5"/>
+    </svg>
+    <span id="toastText"></span>
+  </div>
+
+  <script>
+    "use strict";
+
+    /* =========================================================
+       CONFIGURACIÓN DE LA FUENTE DE DATOS
+       Esta es la URL pública CSV del Google Sheet. La página
+       consulta esta dirección con fetch() cada vez que carga o
+       cuando el usuario pulsa el botón de actualización.
+       ========================================================= */
+    const GOOGLE_SHEETS_CSV_URL =
+      "https://docs.google.com/spreadsheets/d/e/2PACX-1vTi3h8L7twf_-A8etvjowKE8sfm0Y25_B_iXT2j0l_tBe6nzmdosX81vFNk8ihFNGr2PeZFT0e2XClB/pub?gid=1087355602&single=true&output=csv";
+
+    /* =========================================================
+       ALIAS DE COLUMNAS
+       Permiten reconocer variantes frecuentes en los encabezados
+       del Sheet sin depender de mayúsculas, tildes o espacios.
+       Puede ampliar estas listas si la hoja cambia de nombres.
+       ========================================================= */
+    const FIELD_ALIASES = {
+      name: [
+        "nombre", "nombre completo", "nombre del empleado",
+        "nombre colaborador", "colaborador", "empleado",
+        "nombres y apellidos", "nombre y apellido"
+      ],
+      management: [
+        "gerencia", "area", "área", "departamento", "direccion",
+        "dirección", "unidad", "division", "división"
+      ],
+      position: [
+        "puesto", "cargo", "posicion", "posición",
+        "puesto de trabajo", "cargo laboral"
+      ],
+      email: [
+        "correo", "email", "e-mail", "correo electronico",
+        "correo electrónico", "mail"
+      ],
+      photo: [
+        "foto", "imagen", "fotografia", "fotografía",
+        "url foto", "url de foto", "foto url", "image", "photo"
+      ]
+    };
+
+    const ICONS = {
+      building: `
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <path d="M3 21h18M6 21V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v16"/>
+          <path d="M9 7h2M13 7h2M9 11h2M13 11h2M9 15h2M13 15h2"/>
+        </svg>`,
+      badge: `
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <rect x="3" y="5" width="18" height="14" rx="2"/>
+          <path d="M8 5V3h8v2M7 10h10M9 14h6"/>
+        </svg>`,
+      mail: `
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <rect x="3" y="5" width="18" height="14" rx="2"/>
+          <path d="m3 7 9 6 9-6"/>
+        </svg>`,
+      user: `
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <circle cx="12" cy="8" r="4"/>
+          <path d="M4 21a8 8 0 0 1 16 0"/>
+        </svg>`,
+      copy: `
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <rect x="9" y="9" width="11" height="11" rx="2"/>
+          <path d="M15 9V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h3"/>
+        </svg>`,
+      alert: `
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <path d="M10.3 2.9 1.8 17a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 2.9a2 2 0 0 0-3.4 0Z"/>
+          <path d="M12 9v4M12 17h.01"/>
+        </svg>`,
+      search: `
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <circle cx="11" cy="11" r="7"/>
+          <path d="m20 20-3.2-3.2"/>
+        </svg>`
+    };
+
+    const elements = {
+      tree: document.getElementById("directoryTree"),
+      directoryMeta: document.getElementById("directoryMeta"),
+      searchInput: document.getElementById("searchInput"),
+      clearButton: document.getElementById("clearButton"),
+      refreshButton: document.getElementById("refreshButton"),
+      resultsMeta: document.getElementById("resultsMeta"),
+      mainState: document.getElementById("mainState"),
+      employeeCount: document.getElementById("employeeCount"),
+      managementCount: document.getElementById("managementCount"),
+      statusDot: document.getElementById("statusDot"),
+      dataStatus: document.getElementById("dataStatus"),
+      toast: document.getElementById("toast"),
+      toastText: document.getElementById("toastText")
+    };
+
+    const appState = {
+      employees: [],
+      filteredEmployees: [],
+      selectedEmployee: null,
+      fieldMap: null,
+      loadedAt: null,
+      searchTimer: null,
+      toastTimer: null
+    };
+
+    /* =========================================================
+       UTILIDADES DE NORMALIZACIÓN Y ESCAPE
+       ========================================================= */
+    function normalizeText(value) {
+      return String(value ?? "")
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/\s+/g, " ")
+        .trim()
+        .toLowerCase();
+    }
+
+    function displayValue(value, fallback = "No disponible") {
+      const clean = String(value ?? "").trim();
+      return clean || fallback;
+    }
+
+    function getInitials(name) {
+      const parts = String(name ?? "")
+        .trim()
+        .split(/\s+/)
+        .filter(Boolean);
+
+      if (!parts.length) return "—";
+      if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+      return `${parts[0][0]}${parts[parts.length - 1][0]}`.toUpperCase();
+    }
+
+    function formatTime(date) {
+      return new Intl.DateTimeFormat("es-HN", {
+        hour: "2-digit",
+        minute: "2-digit"
+      }).format(date);
+    }
+
+    function isValidEmail(email) {
+      return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(email ?? "").trim());
+    }
+
+    function showToast(message) {
+      elements.toastText.textContent = message;
+      elements.toast.classList.add("is-visible");
+      clearTimeout(appState.toastTimer);
+      appState.toastTimer = setTimeout(() => {
+        elements.toast.classList.remove("is-visible");
+      }, 2800);
+    }
+
+    /* =========================================================
+       PARSER CSV
+       Procesa correctamente comas, saltos de línea, comillas
+       dobles y comillas escapadas. No requiere librerías externas.
+       ========================================================= */
+    function parseCSV(csvText) {
+      const rows = [];
+      let row = [];
+      let field = "";
+      let inQuotes = false;
+
+      for (let i = 0; i < csvText.length; i += 1) {
+        const char = csvText[i];
+        const next = csvText[i + 1];
+
+        if (char === '"') {
+          if (inQuotes && next === '"') {
+            field += '"';
+            i += 1;
+          } else {
+            inQuotes = !inQuotes;
+          }
+        } else if (char === "," && !inQuotes) {
+          row.push(field);
+          field = "";
+        } else if ((char === "\n" || char === "\r") && !inQuotes) {
+          if (char === "\r" && next === "\n") i += 1;
+          row.push(field);
+          field = "";
+
+          if (row.some(cell => String(cell).trim() !== "")) {
+            rows.push(row);
+          }
+          row = [];
+        } else {
+          field += char;
+        }
+      }
+
+      row.push(field);
+      if (row.some(cell => String(cell).trim() !== "")) {
+        rows.push(row);
+      }
+
+      return rows;
+    }
+
+    /* =========================================================
+       DETECCIÓN DINÁMICA DE COLUMNAS
+       Se calcula la mejor coincidencia entre cada encabezado real
+       y los alias definidos al inicio del archivo.
+       ========================================================= */
+    function scoreHeader(header, alias, fieldName) {
+      const h = normalizeText(header);
+      const a = normalizeText(alias);
+      let score = 0;
+
+      if (h === a) score = 100;
+      else if (h.startsWith(`${a} `) || h.endsWith(` ${a}`)) score = 78;
+      else if (h.includes(a)) score = 58;
+
+      if (fieldName === "name" && /(gerencia|area|departamento|puesto|cargo)/.test(h)) {
+        score -= 45;
+      }
+
+      return score;
+    }
+
+    function findBestHeader(headers, fieldName) {
+      const aliases = FIELD_ALIASES[fieldName];
+      let best = { header: null, score: 0 };
+
+      headers.forEach(header => {
+        aliases.forEach(alias => {
+          const score = scoreHeader(header, alias, fieldName);
+          if (score > best.score) best = { header, score };
+        });
+      });
+
+      return best.score >= 50 ? best.header : null;
+    }
+
+    function detectFieldMap(headers) {
+      const map = {};
+      Object.keys(FIELD_ALIASES).forEach(fieldName => {
+        map[fieldName] = findBestHeader(headers, fieldName);
+      });
+      return map;
+    }
+
+    /* =========================================================
+       CONVERSIÓN DE ENLACES DE FOTOGRAFÍAS
+       Admite enlaces directos, fórmulas =IMAGE() y URLs comunes
+       de Google Drive, convirtiéndolas a miniaturas utilizables.
+       ========================================================= */
+    function normalizePhotoUrl(rawValue) {
+      let value = String(rawValue ?? "").trim();
+      if (!value) return "";
+
+      const imageFormula = value.match(/^=IMAGE\(\s*"([^"]+)"/i);
+      if (imageFormula) value = imageFormula[1];
+
+      const filePathMatch = value.match(/drive\.google\.com\/file\/d\/([^/]+)/i);
+      const idParamMatch = value.match(/[?&]id=([^&]+)/i);
+      const driveId = filePathMatch?.[1] || idParamMatch?.[1];
+
+      if (driveId) {
+        return `https://drive.google.com/thumbnail?id=${encodeURIComponent(driveId)}&sz=w1200`;
+      }
+
+      return /^https?:\/\//i.test(value) ? value : "";
+    }
+
+    /* =========================================================
+       PROCESAMIENTO DE DATOS
+       Convierte cada fila del CSV en un objeto de colaborador.
+       Toda la información que se visualiza proviene del Sheet.
+       ========================================================= */
+    function buildEmployees(rows) {
+      if (rows.length < 2) {
+        throw new Error("La hoja no contiene filas de datos.");
+      }
+
+      const headers = rows[0].map(header => String(header).trim());
+      const fieldMap = detectFieldMap(headers);
+      appState.fieldMap = fieldMap;
+
+      if (!fieldMap.name) {
+        throw new Error(
+          `No fue posible identificar la columna de nombres. Encabezados detectados: ${headers.join(", ")}`
+        );
+      }
+
+      const employees = rows.slice(1).map((row, index) => {
+        const record = {};
+        headers.forEach((header, columnIndex) => {
+          record[header] = String(row[columnIndex] ?? "").trim();
+        });
+
+        const name = record[fieldMap.name];
+
+        return {
+          id: `employee-${index}-${normalizeText(name).replace(/[^a-z0-9]+/g, "-")}`,
+          name: String(name ?? "").trim(),
+          management: fieldMap.management ? String(record[fieldMap.management] ?? "").trim() : "",
+          position: fieldMap.position ? String(record[fieldMap.position] ?? "").trim() : "",
+          email: fieldMap.email ? String(record[fieldMap.email] ?? "").trim() : "",
+          photo: fieldMap.photo ? normalizePhotoUrl(record[fieldMap.photo]) : "",
+          sourceRow: index + 2
+        };
+      });
+
+      return employees
+        .filter(employee => employee.name)
+        .sort((a, b) => {
+          const managementCompare = displayValue(a.management, "Sin gerencia")
+            .localeCompare(displayValue(b.management, "Sin gerencia"), "es", { sensitivity: "base" });
+
+          return managementCompare ||
+            a.name.localeCompare(b.name, "es", { sensitivity: "base" });
+        });
+    }
+
+    /* =========================================================
+       CONEXIÓN CON GOOGLE SHEETS MEDIANTE fetch()
+       Se añade un parámetro temporal para evitar datos antiguos
+       almacenados en caché por el navegador o el servidor.
+       ========================================================= */
+    async function loadData({ preserveSelection = true } = {}) {
+      const previousName = preserveSelection ? appState.selectedEmployee?.name : null;
+
+      setLoadingState(true);
+      setConnectionStatus("loading", "Conectando con Google Sheets…");
+
+      try {
+        const separator = GOOGLE_SHEETS_CSV_URL.includes("?") ? "&" : "?";
+        const requestUrl = `${GOOGLE_SHEETS_CSV_URL}${separator}_=${Date.now()}`;
+
+        const response = await fetch(requestUrl, {
+          method: "GET",
+          cache: "no-store",
+          headers: { Accept: "text/csv,text/plain,*/*" }
+        });
+
+        if (!response.ok) {
+          throw new Error(`Google Sheets respondió con el código ${response.status}.`);
+        }
+
+        const csvText = await response.text();
+        const rows = parseCSV(csvText.replace(/^\uFEFF/, ""));
+        const employees = buildEmployees(rows);
+
+        if (!employees.length) {
+          throw new Error("No se encontraron colaboradores con nombre en la hoja.");
+        }
+
+        appState.employees = employees;
+        appState.loadedAt = new Date();
+
+        const requestedName = getEmployeeFromHash();
+        appState.selectedEmployee =
+          employees.find(item => item.name === previousName) ||
+          employees.find(item => normalizeText(item.name) === normalizeText(requestedName)) ||
+          employees[0];
+
+        filterEmployees(elements.searchInput.value);
+        updateSummary();
+        renderProfile(appState.selectedEmployee);
+        setConnectionStatus(
+          "online",
+          `Actualizado a las ${formatTime(appState.loadedAt)}`
+        );
+      } catch (error) {
+        console.error("Error al cargar el directorio:", error);
+        renderErrorState(error);
+        elements.tree.innerHTML = "";
+        elements.directoryMeta.textContent = "No fue posible cargar el directorio.";
+        elements.resultsMeta.textContent = "No hay resultados disponibles.";
+        elements.employeeCount.textContent = "—";
+        elements.managementCount.textContent = "—";
+        setConnectionStatus("error", "Error de conexión");
+      } finally {
+        setLoadingState(false);
+      }
+    }
+
+    function setLoadingState(isLoading) {
+      elements.refreshButton.disabled = isLoading;
+      elements.refreshButton.classList.toggle("is-spinning", isLoading);
+      elements.searchInput.disabled = isLoading;
+
+      if (isLoading && !appState.employees.length) {
+        renderLoadingState();
+      }
+    }
+
+    function setConnectionStatus(type, message) {
+      elements.statusDot.classList.remove("is-online", "is-error");
+      if (type === "online") elements.statusDot.classList.add("is-online");
+      if (type === "error") elements.statusDot.classList.add("is-error");
+      elements.dataStatus.textContent = message;
+    }
+
+    /* =========================================================
+       FILTRADO Y AGRUPACIÓN
+       El buscador consulta nombre, gerencia, puesto y correo.
+       ========================================================= */
+    function filterEmployees(query) {
+      const term = normalizeText(query);
+
+      appState.filteredEmployees = appState.employees.filter(employee => {
+        if (!term) return true;
+        return [
+          employee.name,
+          employee.management,
+          employee.position,
+          employee.email
+        ].some(value => normalizeText(value).includes(term));
+      });
+
+      elements.clearButton.hidden = !query;
+      renderDirectory();
+      updateResultsMeta();
+
+      if (
+        appState.filteredEmployees.length &&
+        !appState.filteredEmployees.some(item => item.id === appState.selectedEmployee?.id)
+      ) {
+        selectEmployee(appState.filteredEmployees[0], { updateHash: false });
+      }
+    }
+
+    function groupEmployees(employees) {
+      return employees.reduce((groups, employee) => {
+        const groupName = displayValue(employee.management, "Sin gerencia asignada");
+        if (!groups.has(groupName)) groups.set(groupName, []);
+        groups.get(groupName).push(employee);
+        return groups;
+      }, new Map());
+    }
+
+    function updateSummary() {
+      const managements = new Set(
+        appState.employees.map(employee =>
+          displayValue(employee.management, "Sin gerencia asignada")
+        )
+      );
+
+      elements.employeeCount.textContent = appState.employees.length.toLocaleString("es-HN");
+      elements.managementCount.textContent = managements.size.toLocaleString("es-HN");
+      elements.directoryMeta.textContent =
+        `${appState.employees.length.toLocaleString("es-HN")} colaboradores en ` +
+        `${managements.size.toLocaleString("es-HN")} gerencias`;
+    }
+
+    function updateResultsMeta() {
+      const total = appState.employees.length;
+      const visible = appState.filteredEmployees.length;
+      const hasQuery = Boolean(elements.searchInput.value.trim());
+
+      if (!hasQuery) {
+        elements.resultsMeta.textContent =
+          `${total.toLocaleString("es-HN")} colaboradores disponibles.`;
+      } else if (visible === 0) {
+        elements.resultsMeta.textContent = "No se encontraron coincidencias.";
+      } else {
+        elements.resultsMeta.textContent =
+          `${visible.toLocaleString("es-HN")} de ${total.toLocaleString("es-HN")} colaboradores coinciden.`;
+      }
+    }
+
+    /* =========================================================
+       CONSTRUCCIÓN DINÁMICA DEL ÁRBOL ORGANIZACIONAL
+       Se utilizan nodos DOM y textContent para evitar inyección
+       de HTML procedente de la hoja de cálculo.
+       ========================================================= */
+    function renderDirectory() {
+      elements.tree.replaceChildren();
+
+      if (!appState.filteredEmployees.length) {
+        const empty = document.createElement("div");
+        empty.className = "tree-empty";
+        empty.textContent = "No hay colaboradores que coincidan con la búsqueda.";
+        elements.tree.appendChild(empty);
+        return;
+      }
+
+      const groups = groupEmployees(appState.filteredEmployees);
+      let groupIndex = 0;
+
+      groups.forEach((employees, groupName) => {
+        const details = document.createElement("details");
+        details.className = "tree-group";
+
+        const selectedInGroup = employees.some(
+          employee => employee.id === appState.selectedEmployee?.id
+        );
+        details.open = selectedInGroup || Boolean(elements.searchInput.value.trim()) || groupIndex === 0;
+
+        const summary = document.createElement("summary");
+        summary.append(document.createTextNode(groupName));
+
+        const count = document.createElement("span");
+        count.className = "tree-group__count";
+        count.textContent = employees.length.toLocaleString("es-HN");
+        summary.appendChild(count);
+
+        const list = document.createElement("div");
+        list.className = "employee-list";
+
+        employees.forEach(employee => {
+          const button = document.createElement("button");
+          button.type = "button";
+          button.className = "employee-button";
+          button.dataset.employeeId = employee.id;
+          button.setAttribute("aria-label", `Ver perfil de ${employee.name}`);
+
+          if (employee.id === appState.selectedEmployee?.id) {
+            button.classList.add("is-selected");
+            button.setAttribute("aria-current", "true");
+          }
+
+          const avatar = document.createElement("span");
+          avatar.className = "employee-button__avatar";
+          avatar.textContent = getInitials(employee.name);
+
+          const text = document.createElement("span");
+          text.className = "employee-button__text";
+
+          const name = document.createElement("span");
+          name.className = "employee-button__name";
+          name.textContent = employee.name;
+
+          const role = document.createElement("span");
+          role.className = "employee-button__role";
+          role.textContent = displayValue(employee.position, "Puesto no especificado");
+
+          text.append(name, role);
+          button.append(avatar, text);
+
+          button.addEventListener("click", () => {
+            selectEmployee(employee);
+          });
+
+          list.appendChild(button);
+        });
+
+        details.append(summary, list);
+        elements.tree.appendChild(details);
+        groupIndex += 1;
+      });
+    }
+
+    /* =========================================================
+       CONSTRUCCIÓN DINÁMICA DEL PERFIL
+       ========================================================= */
+    function selectEmployee(employee, { updateHash = true } = {}) {
+      if (!employee) return;
+
+      appState.selectedEmployee = employee;
+      renderDirectory();
+      renderProfile(employee);
+
+      if (updateHash) {
+        const hash = `empleado=${encodeURIComponent(employee.name)}`;
+        history.replaceState(null, "", `#${hash}`);
+      }
+
+      if (window.innerWidth < 901) {
+        elements.mainState.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+    }
+
+    function renderProfile(employee) {
+      const section = document.createElement("section");
+      section.className = "profile panel";
+      section.setAttribute("aria-label", `Perfil de ${employee.name}`);
+
+      const visual = document.createElement("div");
+      visual.className = "profile__visual";
+
+      const fallback = document.createElement("div");
+      fallback.className = "profile__fallback";
+      fallback.textContent = getInitials(employee.name);
+      fallback.setAttribute("aria-hidden", "true");
+
+      const photo = document.createElement("img");
+      photo.className = "profile__photo";
+      photo.alt = `Fotografía de ${employee.name}`;
+      photo.loading = "eager";
+      photo.decoding = "async";
+      photo.referrerPolicy = "no-referrer";
+
+      if (employee.photo) {
+        photo.addEventListener("load", () => {
+          photo.style.display = "block";
+          fallback.style.display = "none";
+        });
+
+        photo.addEventListener("error", () => {
+          photo.removeAttribute("src");
+          photo.style.display = "none";
+          fallback.style.display = "grid";
+        });
+
+        photo.src = employee.photo;
+      }
+
+      const badge = document.createElement("span");
+      badge.className = "profile__badge";
+      badge.textContent = "Perfil corporativo";
+
+      const caption = document.createElement("div");
+      caption.className = "profile__visual-caption";
+
+      const captionName = document.createElement("strong");
+      captionName.textContent = employee.name;
+
+      const captionRole = document.createElement("span");
+      captionRole.textContent = displayValue(employee.position, "Puesto no especificado");
+
+      caption.append(captionName, captionRole);
+      visual.append(fallback, photo, badge, caption);
+
+      const details = document.createElement("div");
+      details.className = "profile__details";
+
+      const title = document.createElement("h2");
+      title.className = "profile__title";
+      title.textContent = employee.name;
+
+      const subtitle = document.createElement("p");
+      subtitle.className = "profile__subtitle";
+      subtitle.textContent = "Información actualizada desde el directorio institucional.";
+
+      const grid = document.createElement("div");
+      grid.className = "profile-grid";
+
+      grid.append(
+        createDataCard("Nombre", employee.name, ICONS.user),
+        createDataCard(
+          "Gerencia",
+          displayValue(employee.management, "Sin gerencia asignada"),
+          ICONS.building
+        ),
+        createDataCard(
+          "Puesto",
+          displayValue(employee.position, "No especificado"),
+          ICONS.badge
+        ),
+        createEmailCard(employee.email)
+      );
+
+      const actions = document.createElement("div");
+      actions.className = "profile-actions";
+
+      if (isValidEmail(employee.email)) {
+        const mailButton = document.createElement("a");
+        mailButton.className = "button";
+        mailButton.href = `mailto:${employee.email}`;
+        mailButton.innerHTML = `${ICONS.mail}<span>Enviar correo</span>`;
+
+        const copyButton = document.createElement("button");
+        copyButton.type = "button";
+        copyButton.className = "button button--secondary";
+        copyButton.innerHTML = `${ICONS.copy}<span>Copiar correo</span>`;
+        copyButton.addEventListener("click", () => copyEmail(employee.email));
+
+        actions.append(mailButton, copyButton);
+      }
+
+      details.append(title, subtitle, grid);
+      if (actions.children.length) details.appendChild(actions);
+
+      section.append(visual, details);
+      elements.mainState.replaceWith(section);
+      elements.mainState = section;
+    }
+
+    function createDataCard(label, value, icon) {
+      const card = document.createElement("div");
+      card.className = "data-card";
+
+      const cardLabel = document.createElement("div");
+      cardLabel.className = "data-card__label";
+      cardLabel.innerHTML = icon;
+
+      const labelText = document.createElement("span");
+      labelText.textContent = label;
+      cardLabel.appendChild(labelText);
+
+      const cardValue = document.createElement("span");
+      cardValue.className = "data-card__value";
+      cardValue.textContent = value;
+
+      card.append(cardLabel, cardValue);
+      return card;
+    }
+
+    function createEmailCard(email) {
+      const card = document.createElement("div");
+      card.className = "data-card";
+
+      const cardLabel = document.createElement("div");
+      cardLabel.className = "data-card__label";
+      cardLabel.innerHTML = ICONS.mail;
+
+      const labelText = document.createElement("span");
+      labelText.textContent = "Correo";
+      cardLabel.appendChild(labelText);
+
+      const value = isValidEmail(email)
+        ? document.createElement("a")
+        : document.createElement("span");
+
+      value.className = "data-card__value";
+      value.textContent = displayValue(email);
+
+      if (isValidEmail(email)) {
+        value.href = `mailto:${email}`;
+      }
+
+      card.append(cardLabel, value);
+      return card;
+    }
+
+    async function copyEmail(email) {
+      try {
+        await navigator.clipboard.writeText(email);
+        showToast("Correo copiado al portapapeles.");
+      } catch {
+        const temporary = document.createElement("textarea");
+        temporary.value = email;
+        temporary.style.position = "fixed";
+        temporary.style.opacity = "0";
+        document.body.appendChild(temporary);
+        temporary.select();
+        document.execCommand("copy");
+        temporary.remove();
+        showToast("Correo copiado al portapapeles.");
+      }
+    }
+
+    function getEmployeeFromHash() {
+      const raw = window.location.hash.replace(/^#/, "");
+      const params = new URLSearchParams(raw);
+      return params.get("empleado") || "";
+    }
+
+    /* =========================================================
+       ESTADOS VISUALES
+       ========================================================= */
+    function renderLoadingState() {
+      const section = document.createElement("section");
+      section.id = "mainState";
+      section.className = "panel";
+      section.setAttribute("aria-live", "polite");
+      section.innerHTML = `
+        <div class="loading-layout" aria-label="Cargando información">
+          <div class="loading-photo skeleton"></div>
+          <div class="loading-info">
+            <div class="loading-line loading-line--lg skeleton"></div>
+            <div class="loading-line loading-line--sm skeleton"></div>
+            <div class="loading-cards">
+              <div class="loading-card skeleton"></div>
+              <div class="loading-card skeleton"></div>
+              <div class="loading-card skeleton"></div>
+              <div class="loading-card skeleton"></div>
+            </div>
+          </div>
+        </div>`;
+
+      elements.mainState.replaceWith(section);
+      elements.mainState = section;
+    }
+
+    function renderErrorState(error) {
+      const section = document.createElement("section");
+      section.id = "mainState";
+      section.className = "state-card panel";
+      section.setAttribute("aria-live", "assertive");
+
+      const content = document.createElement("div");
+      content.className = "state-card__content";
+
+      const icon = document.createElement("div");
+      icon.className = "state-icon";
+      icon.innerHTML = ICONS.alert;
+
+      const title = document.createElement("h3");
+      title.textContent = "No se pudo cargar el directorio";
+
+      const message = document.createElement("p");
+      message.textContent =
+        `${error.message} Verifique que el Google Sheet continúe publicado como CSV ` +
+        `y que el sitio se abra desde GitHub Pages o un servidor web.`;
+
+      const retry = document.createElement("button");
+      retry.type = "button";
+      retry.className = "button";
+      retry.textContent = "Intentar nuevamente";
+      retry.addEventListener("click", () => loadData({ preserveSelection: false }));
+
+      content.append(icon, title, message, retry);
+      section.appendChild(content);
+
+      elements.mainState.replaceWith(section);
+      elements.mainState = section;
+    }
+
+    /* =========================================================
+       EVENTOS DE INTERACCIÓN
+       ========================================================= */
+    elements.searchInput.addEventListener("input", event => {
+      clearTimeout(appState.searchTimer);
+      const query = event.target.value;
+
+      appState.searchTimer = setTimeout(() => {
+        filterEmployees(query);
+      }, 120);
+    });
+
+    elements.searchInput.addEventListener("keydown", event => {
+      if (event.key === "Escape") {
+        elements.searchInput.value = "";
+        filterEmployees("");
+      }
+
+      if (event.key === "Enter" && appState.filteredEmployees.length) {
+        event.preventDefault();
+        selectEmployee(appState.filteredEmployees[0]);
+      }
+    });
+
+    elements.clearButton.addEventListener("click", () => {
+      elements.searchInput.value = "";
+      filterEmployees("");
+      elements.searchInput.focus();
+    });
+
+    elements.refreshButton.addEventListener("click", () => {
+      loadData({ preserveSelection: true });
+    });
+
+    window.addEventListener("hashchange", () => {
+      const requestedName = getEmployeeFromHash();
+      const match = appState.employees.find(
+        employee => normalizeText(employee.name) === normalizeText(requestedName)
+      );
+      if (match) selectEmployee(match, { updateHash: false });
+    });
+
+    /* Inicio de la aplicación */
+    loadData({ preserveSelection: false });
+  </script>
+</body>
+</html>
